@@ -9,7 +9,7 @@ if [[ ! -e ~/.singularity ]]; then
     ln -sr ~/work/.singularity ~/.singularity
 fi
 
-export RSTUDIO_SERVER_IMAGE=/fast/groups/ag_haas/work/CUBI_RStudio/haas-rstudio-server/singularity_images/rstudio_2023.09.1_494.sif
+export RSTUDIO_SERVER_IMAGE=../singularity_images/<%= context.singularity_image %>
 
 # Define a password and export it for RStudio authentication
 password="$(create_passwd 16)"
