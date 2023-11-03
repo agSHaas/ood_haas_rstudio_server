@@ -6,4 +6,4 @@ Based on [bc\_osc\_rstudio\_server](https://github.com/OSC/bc_osc_rstudio_server
 
 ## License
 
-- MIT, see `LICENSE` file.
+- MIT
