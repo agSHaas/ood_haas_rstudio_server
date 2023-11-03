@@ -33,13 +33,13 @@ Once you've added a new singularity image, you have to change the template files
 
 - In `template/before.sh.erb`, change the path to the `RSTUDIO_SERVER_IMAGE` so that it points to your image. Alternatively, you can point to a folder containing several images, and pass the `.sif` file name from the `form.yml` options with `<%= context.singularity_image %>`:
   ```
-  /path/to/singularity_images/<%= context.singularity_image %>`.
+  /path/to/singularity_images/<%= context.singularity_image %>
   ```
 - `template/after.sh.erb` handles the start-up message for the RStudio server instance.
 
 - Finally, `template/script.sh.erb` starts the RStudio server from the singularity image. You can customize the `apptainer run` command, R library paths, miniconda and more. Here you can also explicitly load libraries such as GNU C++ from a miniconda environment:
   ```
-  `export LD_PRELOAD=/fast/work/users/<user_name>/bin/miniconda3/envs/<env>/lib/libstdc++.so.6`
+  export LD_PRELOAD=/fast/work/users/<user_name>/bin/miniconda3/envs/<env>/lib/libstdc++.so.6
   ```
 <br/>
 
