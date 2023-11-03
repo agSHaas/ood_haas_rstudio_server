@@ -1,0 +1,20 @@
+<%-
+  cpus = bih_cpus.to_i
+  mem = bih_mem.to_i
+  days = bih_days.to_i
+-%>
+---
+batch_connect:
+  template: "basic"
+  conn_params:
+    - csrf_token
+script:
+  native:
+    - "--cpus-per-task"
+    - "<%= cpus %>"
+    - "--mem"
+    - "<%= mem * 1024 %>"
+    - "--partition"
+    - "<%= bih_partition %>"
+    - "--time"
+    - "<%= days %>-0"

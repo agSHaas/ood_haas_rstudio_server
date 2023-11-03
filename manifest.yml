@@ -1,0 +1,7 @@
+---
+name: Haas RStudio Server
+category: Interactive Apps
+subcategory: Servers
+role: batch_connect
+description: |
+  This app will launch the Haas lab version of [RStudio Server](https://rstudio.com) an IDE for [R](https://www.r-project.org) on the BIH Cluster.

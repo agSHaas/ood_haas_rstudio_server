@@ -1,0 +1,104 @@
+#!/usr/bin/env bash
+
+set -x
+
+<%-
+working_dir_host = '${PWD}'
+working_dir_container = working_dir_host
+%>
+
+#
+# Start RStudio Server
+#
+
+# PAM auth helper used by RStudio
+export RSTUDIO_AUTH=$(readlink -f "<%= working_dir_container %>/bin/auth")
+
+source "<%= working_dir_container %>/.env"
+
+<% if context.r_provider == "miniconda" %>
+source <%= context.miniconda_path.split(":")[0] %>/activate
+<% if context.miniconda_path.include? ":" %>
+conda activate <%= context.miniconda_path.split(":")[1] %>
+<% end %>
+export RSTUDIO_WHICH_R=$(which R)
+<% end %>
+
+# Generate an `rsession` wrapper script
+export RSESSION_WRAPPER_FILE="<%= working_dir_container %>/rsession.sh"
+(
+umask 077
+sed 's/^ \{2\}//' > "<%= working_dir_host %>/rsession.sh" << EOL
+  #!/usr/bin/env bash
+
+  set -x
+
+  for x in /opt/R/*; do
+    export LD_LIBRARY_PATH=\$x/lib/R/lib:\$LD_LIBRARY_PATH
+  done
+  export LD_LIBRARY_PATH=/usr/lib64/:\$LD_LIBRARY_PATH
+  export LD_PRELOAD=/fast/work/users/vifl10_c/bin/miniconda3/envs/sc_R/lib/libstdc++.so.6 
+  
+  # Log all output from this script
+  export RSESSION_LOG_FILE="<%= working_dir_container %>/rsession.log"
+
+  exec &>>"\${RSESSION_LOG_FILE}"
+
+<% if context.r_provider == "miniconda" %>
+  source <%= context.miniconda_path.split(":")[0] %>/activate
+  <% if context.miniconda_path.include? ":" %>
+  conda activate <%= context.miniconda_path.split(":")[1] %>
+  <% end %>
+  export RSTUDIO_WHICH_R=\$(which R)
+<% end %>
+
+  # Launch the original command
+  echo "Launching rsession..."
+  set -x
+  exec rsession $(if [[ ! -z "${R_LIBS_USER}" ]]; then echo --r-libs-user "${R_LIBS_USER}"; fi) "\${@}"
+EOL
+)
+chmod 700 "<%= working_dir_host %>/rsession.sh"
+
+# Set working directory to home directory
+cd "${HOME}"
+
+# Output debug info
+hostname
+
+set -x
+# Launch the RStudio Server
+echo "Starting up rserver..."
+
+# Dump environment without functions for use in rsession.sh, filtering readonly variables
+(set -o posix; set) | grep -vP '^(BASHOPTS|BASH_VERSINFO|EUID|PPID|SHELLOPTS|UID)' > "<%= working_dir_container %>/.env"
+
+SERVER_DATA_DIR=$(TMPDIR=/tmp mktemp -d)
+mkdir -p ${SERVER_DATA_DIR}/var/{lib,run}
+chmod a+rw ${SERVER_DATA_DIR}/var/run
+chmod +t ${SERVER_DATA_DIR}/var/run
+
+CLUSTER_USER=$(echo $USER | sed -e 's/@CHARITE/_c/' -e 's/@MDC-BERLIN/_m/')
+#BINDS=$(readlink -f /fast/users/$CLUSTER_USER),$(readlink -f /fast/users/$CLUSTER_USER/work),$(readlink -f /fast/users/$CLUSTER_USER/scratch)
+#BINDS=/fast/users,/fast/projects/,/fast/groups,/fast/home,/fast/work,/fast/scratch
+if [[ -d /fast ]]; then
+    BINDS=/data,/fast,${SERVER_DATA_DIR}/var/lib:/var/lib/rstudio-server,${SERVER_DATA_DIR}/var/run:/var/run/rstudio-server
+else
+    BINDS=/data,${SERVER_DATA_DIR}/var/lib:/var/lib/rstudio-server,${SERVER_DATA_DIR}/var/run:/var/run/rstudio-server
+fi
+
+apptainer run --no-home -B "$BINDS" \
+    --env "PATH=/usr/lib/rstudio-server/bin:${PATH}" \
+    "$RSTUDIO_SERVER_IMAGE" \
+    rserver \
+    --server-user "$USER" \
+    --www-port "${port}" \
+    --auth-none 0 \
+    --auth-timeout-minutes 0 \
+    --auth-stay-signed-in-days 30 \
+    --auth-pam-helper-path "${RSTUDIO_AUTH}" \
+    --auth-encrypt-password 0 \
+    $(if [[ ! -z "${RSTUDIO_WHICH_R}" ]]; then echo --rsession-which-r "${RSTUDIO_WHICH_R}"; fi) \
+    --rsession-path "${RSESSION_WRAPPER_FILE}" \
+    --server-data-dir='/tmp/run' 
+

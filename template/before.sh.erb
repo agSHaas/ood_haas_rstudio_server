@@ -1,0 +1,22 @@
+set -x
+
+# Find available port to run server on
+port=$(find_port ${host})
+
+# Create ~/.singularity as symlink to work.
+if [[ ! -e ~/.singularity ]]; then
+    mkdir -p ~/work/.singularity
+    ln -sr ~/work/.singularity ~/.singularity
+fi
+
+export RSTUDIO_SERVER_IMAGE=/fast/groups/ag_haas/work/CUBI_RStudio/haas-rstudio-server/singularity_images/rstudio_2023.09.1_494.sif
+
+# Define a password and export it for RStudio authentication
+password="$(create_passwd 16)"
+export RSTUDIO_PASSWORD="${password}"
+
+<%-
+  require 'securerandom'
+  csrftoken = SecureRandom.uuid
+-%>
+export csrf_token="<%= csrftoken %>"
