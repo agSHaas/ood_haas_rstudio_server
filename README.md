@@ -25,8 +25,6 @@ Once you've added a new singularity image, you have to change the template files
 
 - The `form.yml` file specifies the launch site for the RStudio server. Under `singularity_image:`, add a new option to add your image to the drop down menu. The first string will appear in the OnDemand frontend, the second string is the file name of your image: `- [ "displayed_text", "rstudio_version.sif" ]`. You can also adapt the other specifications.
 
-  <img width="414" alt="launch_site" src="https://github.com/agSHaas/ood_haas_rstudio_server/assets/101065883/c6d81550-d732-4d1d-b66b-732a9d48bba0">
-
 - The `manifest.yml` file manages the name and description of your app, and you can upload another icon.png.
 
 - The `submit.yml.erb` and `view.html.erb` files handle the cluster specifications and sign-in. You don't need to change anything here, but you can.
