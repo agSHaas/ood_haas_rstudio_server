@@ -35,6 +35,8 @@ Once you've added a new singularity image, you have to change the template files
   ```
   /path/to/singularity_images/<%= context.singularity_image %>
   ```
+  Relative paths are not recognized sometimes, so stick to absolute paths if you run into problems.
+  
 - `template/after.sh.erb` handles the start-up message for the RStudio server instance.
 
 - Finally, `template/script.sh.erb` starts the RStudio server from the singularity image. You can customize the `apptainer run` command, R library paths, miniconda and more. Here you can also explicitly load libraries such as GNU C++ from a miniconda environment:
