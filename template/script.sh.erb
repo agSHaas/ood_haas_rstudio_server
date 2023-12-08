@@ -37,7 +37,7 @@ sed 's/^ \{2\}//' > "<%= working_dir_host %>/rsession.sh" << EOL
     export LD_LIBRARY_PATH=\$x/lib/R/lib:\$LD_LIBRARY_PATH
   done
   export LD_LIBRARY_PATH=/usr/lib64/:\$LD_LIBRARY_PATH
-  export LD_PRELOAD=/fast/work/users/vifl10_c/bin/miniconda3/envs/sc_R/lib/libstdc++.so.6 
+  # export LD_PRELOAD=
   
   # Log all output from this script
   export RSESSION_LOG_FILE="<%= working_dir_container %>/rsession.log"
